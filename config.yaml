@@ -1,0 +1,12 @@
+framework:
+  website: activej.io
+  version: 5.5
+
+  build:
+    - mvn clean package
+
+  binaries:
+    - target/alonsoCarRest.jar
+
+  command: >
+    /usr/bin/java -jar target/alonsoCarRest.jar alonsoCarRest.App

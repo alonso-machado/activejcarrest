@@ -1,5 +1,6 @@
 package com.alonso.active4j.example.http;
 
+import io.activej.bytebuf.ByteBuf;
 import io.activej.config.Config;
 import io.activej.http.*;
 import io.activej.inject.annotation.Provides;
@@ -11,6 +12,7 @@ import io.activej.worker.annotation.Worker;
 import jakarta.validation.constraints.NotNull;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import static io.activej.bytebuf.ByteBufStrings.wrapAscii;
@@ -29,10 +31,9 @@ public final class Main extends MultithreadedHttpServerLauncher {
 				.map(HttpMethod.GET,"/car/name/:name", request -> getByName(request))
 				.map(HttpMethod.GET,"/car/brand/:name", request -> getByBrandName(request))
 				.map(HttpMethod.GET,"/car/price-range/", request -> getByPriceRange(request)) // Query Params: Double startPrice, Double finalPrice
-				.map(HttpMethod.GET,"/car/name/:name", request -> HttpResponse.ok200().withBody(wrapAscii(request.getPathParameter("name"))))
-				.map(HttpMethod.POST,"/car", request -> HttpResponse.ok200().withBody(wrapAscii(request.getPathParameter("name"))))
-				.map(HttpMethod.PUT,"/car/:id", request -> HttpResponse.ok200().withBody(wrapAscii(request.getPathParameter("name"))))
-				.map(HttpMethod.DELETE,"/car/:id", request -> HttpResponse.ok200().withBody(wrapAscii(request.getPathParameter("name"))));
+				.map(HttpMethod.POST,"/car", request -> postCar(request))
+				.map(HttpMethod.PUT,"/car/:id", request -> putById(request))
+				.map(HttpMethod.DELETE,"/car/:id", request -> deleteById(request));
 	}
 
 
@@ -68,6 +69,16 @@ public final class Main extends MultithreadedHttpServerLauncher {
 			return Promise.of(HttpResponse.ofCode(202).withBody(wrapAscii(request.getPathParameter("id"))));
 		} else {
 			return Promise.of(HttpResponse.ofCode(404).withBody(wrapAscii(request.getPathParameter("id"))));
+		}
+	}
+
+	private Promise<HttpResponse> postCar(HttpRequest request) {
+		ByteBuf id = request.getBody();
+		ByteBuffer bb = id.toReadByteBuffer();
+		if(id != null) {
+			return Promise.of(HttpResponse.ofCode(202).withBody(wrapAscii(bb.toString())));
+		} else {
+			return Promise.of(HttpResponse.ofCode(404).withBody(wrapAscii("CAR NOT SAVED")));
 		}
 	}
 
